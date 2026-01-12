@@ -6,6 +6,7 @@ services:
       dockerfile: docker/isaac/Dockerfile
     image: nvcr.io/nvidia/isaac-sim:5.1.0
     container_name: isaac-sim
+    privileged: true
     entrypoint: bash
     stdin_open: true
     tty: true
@@ -17,7 +18,7 @@ services:
       DISPLAY: ${DISPLAY:-}
       OMNI_KIT_WEBRTC_ENABLE: ${OMNI_KIT_WEBRTC_ENABLE:-0}
       OMNI_KIT_STREAMING_ENABLE: ${OMNI_KIT_STREAMING_ENABLE:-0}
-    
+   
     volumes:
       - ${BASE_DIR}/cache/main:/isaac-sim/.cache:rw
       - ${BASE_DIR}/cache/computecache:/isaac-sim/.nv/ComputeCache:rw
@@ -32,4 +33,6 @@ services:
       resources:
         reservations:
           devices:
-            - capabilities: [gpu]
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
