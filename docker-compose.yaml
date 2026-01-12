@@ -1,0 +1,35 @@
+version: "0.5"
+services:
+  isaac-sim:
+    build:
+      context: .
+      dockerfile: docker/isaac/Dockerfile
+    image: nvcr.io/nvidia/isaac-sim:5.1.0
+    container_name: isaac-sim
+    entrypoint: bash
+    stdin_open: true
+    tty: true
+    network_mode: host
+    
+    environment:
+      ACCEPT_EULA: "Y"
+      PRIVACY_CONSENT: "Y"
+      DISPLAY: ${DISPLAY:-}
+      OMNI_KIT_WEBRTC_ENABLE: ${OMNI_KIT_WEBRTC_ENABLE:-0}
+      OMNI_KIT_STREAMING_ENABLE: ${OMNI_KIT_STREAMING_ENABLE:-0}
+    
+    volumes:
+      - ${BASE_DIR}/cache/main:/isaac-sim/.cache:rw
+      - ${BASE_DIR}/cache/computecache:/isaac-sim/.nv/ComputeCache:rw
+      - ${BASE_DIR}/logs:/isaac-sim/.nvidia-omniverse/logs:rw
+      - ${BASE_DIR}/config:/isaac-sim/.nvidia-omniverse/config:rw
+      - ${BASE_DIR}/data:/isaac-sim/.local/share/ov/data:rw
+      - ${BASE_DIR}/pkg:/isaac-sim/.local/share/ov/pkg:rw
+
+    user: "1234:1234"
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
