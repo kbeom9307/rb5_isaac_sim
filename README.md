@@ -1,84 +1,70 @@
-# Isaac Sim 5.1.0 Docker (Headless + Optional Streaming)
+# Isaac Sim 5.1.0 Docker
 
-이 레포는 Isaac Sim 5.1.0을 Docker로 실행하기 위한 최소 구성입니다.  
-`run_docker.sh`로 캐시/로그/데이터 디렉터리를 준비하고 컨테이너를 올립니다.
+간단하게 Isaac Sim 5.1.0을 Docker로 실행하는 저장소입니다.
+A minimal Docker setup to run Isaac Sim 5.1.0.
 
-## 요구사항
-- Host OS: Ubuntu 22.04
-- NVIDIA 드라이버 설치
-- NVIDIA Container Toolkit 설치
+## Quick Start
 
-### NVIDIA Container Toolkit 설치
 ```bash
-sudo apt-get update
-sudo apt-get install -y nvidia-container-toolkit
-sudo nvidia-ctk runtime configure --runtime=docker
-sudo systemctl restart docker
-GPU 정상 동작 확인
-bash
-
-docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
-빠른 시작 (권장)
-bash
-
 ./run_docker.sh
-run_docker.sh가 하는 일:
+```
 
-BASE_DIR 기준으로 캐시/로그/데이터 디렉터리 생성
-BASE_DIR 권한을 1234 (line 1234)로 변경
-docker compose up -d --build isaac-sim 실행
-환경변수 (선택)
-bash
+## BASE_DIR (중요 / Important)
 
-export BASE_DIR="$HOME/docker/isaac-sim"   # 기본값
-export OMNI_KIT_WEBRTC_ENABLE=True
-export OMNI_KIT_STREAMING_ENABLE=True
-export DISPLAY=:0                          # GUI 사용 시
-수동 실행
-bash
+- 기본값(Default): **repo 경로**
+- `BASE_DIR`가 없으면 `run_docker.sh`가 자동 생성합니다.
+- `docker-compose.yaml` 볼륨 마운트는 `${BASE_DIR}` 기준입니다.
 
-BASE_DIR=$HOME/docker/isaac-sim docker compose up -d --build isaac-sim
-컨테이너 접속
-bash
+Default behavior:
+- `BASE_DIR` defaults to the **repository path**.
+- If it does not exist, `run_docker.sh` creates it.
+- Volume mounts in `docker-compose.yaml` are based on `${BASE_DIR}`.
 
+### Custom BASE_DIR
+
+```bash
+export BASE_DIR="$HOME/docker/isaac-sim"
+./run_docker.sh
+```
+
+### Manual docker compose
+
+```bash
+BASE_DIR="$(pwd)" docker compose up -d --build isaac-sim
+```
+
+## Networking (PUBLIC_IP / Port Forwarding)
+
+- 외부(다른 네트워크)에서 WebRTC 스트리밍 접속이 필요하면 `PUBLIC_IP`를 지정하세요.
+- NAT/공유기/클라우드 환경에서는 포트포워딩(또는 보안그룹/방화벽 오픈)이 필요할 수 있습니다.
+
+```bash
+export PUBLIC_IP="<your_public_ip>"
+./run_docker.sh
+```
+
+Notes:
+- If clients connect from outside your LAN, set `PUBLIC_IP` to your host's reachable public address.
+- In NAT/router/cloud setups, port forwarding (or security group/firewall rules) may be required.
+
+## Requirements
+
+- Ubuntu 22.04
+- NVIDIA Driver
+- NVIDIA Container Toolkit
+
+## Check
+
+```bash
+docker ps --filter name=isaac-sim
 docker exec -it isaac-sim bash
-테스트
-컨테이너 내부에서:
+```
 
-bash
+## Volumes
 
-./scripts/run_tests.sh
-구성 파일
-docker-compose.yaml: Isaac Sim 컨테이너 정의 (GPU, host 네트워크)
-docker/isaac/Dockerfile: Isaac Sim 5.1.0 이미지 빌드
-run_docker.sh: 실행 스크립트
-run_tests.sh: 스모크 테스트
-볼륨 마운트
-모든 데이터는 BASE_DIR 아래에 생성됩니다.
-
-cache/main → /isaac-sim/.cache
-cache/computecache → /isaac-sim/.nv/ComputeCache
-logs → /isaac-sim/.nvidia-omniverse/logs
-config → /isaac-sim/.nvidia-omniverse/config
-data → /isaac-sim/.local/share/ov/data
-pkg → /isaac-sim/.local/share/ov/pkg
-필수 환경변수
-컨테이너 내부에서 Isaac Sim이 실행되기 위해 아래가 필요합니다.
-
-ACCEPT_EULA=Y
-PRIVACY_CONSENT=Y
-(둘 다 docker-compose.yaml에 설정되어 있습니다.)
-
-트러블슈팅
-permission/폴더 마운트 문제
-bash
-
-sudo chown -R 1234:1234 "$BASE_DIR"
-GPU 미인식
-nvidia-smi가 정상 출력되는지 확인
-nvidia-container-toolkit 설정 확인
-Streaming/WebRTC
-run_docker.sh에서 기본으로 OMNI_KIT_WEBRTC_ENABLE=True, OMNI_KIT_STREAMING_ENABLE=True가 설정됩니다.
-필요 없으면 run_docker.sh에서 false로 변경하거나 환경변수로 덮어쓰세요.
-
-
+- `${BASE_DIR}/cache/main` -> `/isaac-sim/.cache`
+- `${BASE_DIR}/cache/computecache` -> `/isaac-sim/.nv/ComputeCache`
+- `${BASE_DIR}/logs` -> `/isaac-sim/.nvidia-omniverse/logs`
+- `${BASE_DIR}/config` -> `/isaac-sim/.nvidia-omniverse/config`
+- `${BASE_DIR}/data` -> `/isaac-sim/.local/share/ov/data`
+- `${BASE_DIR}/pkg` -> `/isaac-sim/.local/share/ov/pkg`

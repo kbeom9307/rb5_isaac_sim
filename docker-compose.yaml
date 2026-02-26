@@ -18,7 +18,9 @@ services:
       DISPLAY: ${DISPLAY:-}
       OMNI_KIT_WEBRTC_ENABLE: ${OMNI_KIT_WEBRTC_ENABLE:-0}
       OMNI_KIT_STREAMING_ENABLE: ${OMNI_KIT_STREAMING_ENABLE:-0}
-   
+      PUBLIC_IP: "${PUBLIC_IP:-}" # export PUBLIC_IP=$(curl -s ifconfig.me) 
+      SIGNAL_PORT: 49100
+      STREAM_PORT: 47998
     volumes:
       - ${BASE_DIR}/cache/main:/isaac-sim/.cache:rw
       - ${BASE_DIR}/cache/computecache:/isaac-sim/.nv/ComputeCache:rw
